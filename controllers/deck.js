@@ -22,10 +22,18 @@ module.exports = {
                 Deck.find({ user: req.user._id })
                     .populate('cards')
                     .exec((err, decks) => {
-                        res.status(200).json({ success: false, error: 'User not logged in.', data: decks });
+                        res.status(200).json({
+                            success: true,
+                            error: '',
+                            data: decks,
+                        });
                     });
             } else {
-                res.send({ success: false, error: 'User not logged in.', data: [] });
+                res.send({
+                    success: false,
+                    error: 'User not logged in.',
+                    data: [],
+                });
             }
         });
     },

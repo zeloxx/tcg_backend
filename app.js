@@ -7,6 +7,9 @@ const session = require('express-session');
 const MongoStore = require('connect-mongo')(session);
 const bodyParser = require('body-parser');
 
+const http = require('http');
+const socketIo = require('socket.io');
+
 const connectDB = require('./config/db');
 
 // Load Config
@@ -20,6 +23,14 @@ connectDB();
 
 // Initialize App
 const app = express();
+
+const server = http.createServer(app);
+const io = socketIo(server, {
+    cors: {
+        origin: 'http://localhost:3000',
+        methods: ['GET', 'POST'],
+    },
+});
 
 const allowCrossDomain = function (req, res, next) {
     res.header('Access-Control-Allow-Credentials', 'true');
@@ -60,15 +71,45 @@ app.use(
 app.use(passport.initialize());
 app.use(passport.session());
 
+// create server for websocket connection
+
+// var io = socket.listen(server);
+io.sockets.on('connection', function () {
+    console.log('hello world im a hot socket');
+});
+
+// set socket.io to be able to use within route handlers
+app.set('socketio', io);
+
 // Routes
 app.use('/auth', require('./routes/auth'));
 app.use('/cards', require('./routes/cards'));
 app.use('/decks', require('./routes/decks'));
 app.use('/play', require('./routes/play'));
 
-// Static Folder (may not need)
+// let interval;
+
+// /quickplay/:id
+// io.on('connection', (socket) => {
+//     console.log('New client connected');
+//     if (interval) {
+//         clearInterval(interval);
+//     }
+//     interval = setInterval(() => getApiAndEmit(socket), 1000);
+//     socket.on('disconnect', () => {
+//         console.log('Client disconnected');
+//         clearInterval(interval);
+//     });
+// });
+
+// Static Folder (may not use)
 // app.use(express.static(path.join(__dirname, 'public')));
 
 const PORT = process.env.PORT || 5000;
 
-app.listen(PORT, console.log(`Server running in ${process.env.NODE_ENV} mode on port: ${PORT}`));
+server.listen(
+    PORT,
+    console.log(
+        `Server running in ${process.env.NODE_ENV} mode on port: ${PORT}`
+    )
+);
